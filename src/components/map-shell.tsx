@@ -5,21 +5,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/lib/accounts/session-context";
 import { getMyLocation, listPins, type MyLocation, type TrollPin } from "@/lib/locations/api";
 import { geocode, type GeocodeResult } from "@/lib/locations/geocode";
-import type { MapHandle } from "./globe-view";
+import type { MapHandle } from "./map-view";
 import { AuthPanel } from "./auth-panel";
 import { PinComposer } from "./pin-composer";
 import { TopCitiesPanel } from "./top-cities-panel";
 
-// Both views touch window/WebGL on mount, so neither can be server-rendered.
-const GlobeView = dynamic(() => import("./globe-view").then((m) => m.GlobeView), {
-  ssr: false,
-});
-const FlatMapView = dynamic(() => import("./flat-map-view").then((m) => m.FlatMapView), {
+// Touches window/WebGL on mount, so it cannot be server-rendered.
+const MapView = dynamic(() => import("./map-view").then((m) => m.MapView), {
   ssr: false,
 });
 
 type Mode = "3d" | "2d";
 type Panel = "none" | "pin" | "auth" | "top";
+
+/** MapLibre zoom level that frames a city. */
+const CITY_ZOOM = 9;
 
 export function MapShell() {
   const { status, session, logout } = useSession();
@@ -31,12 +31,7 @@ export function MapShell() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const globeHandle = useRef<MapHandle | null>(null);
-  const flatHandle = useRef<MapHandle | null>(null);
-  const activeHandle = useCallback(
-    () => (mode === "3d" ? globeHandle.current : flatHandle.current),
-    [mode]
-  );
+  const mapHandle = useRef<MapHandle | null>(null);
 
   const refresh = useCallback(() => setReloadKey((n) => n + 1), []);
 
@@ -74,18 +69,14 @@ export function MapShell() {
   // stale pin behind.
   const myLocation = session ? storedLocation : null;
 
-  const flyTo = useCallback(
-    (lat: number, lng: number, zoom?: number) => {
-      // Give a freshly-swapped view a frame to mount before driving it.
-      requestAnimationFrame(() => activeHandle()?.flyTo(lat, lng, zoom));
-    },
-    [activeHandle]
-  );
+  const flyTo = useCallback((lat: number, lng: number, zoom?: number) => {
+    mapHandle.current?.flyTo(lat, lng, zoom);
+  }, []);
 
   const handleDraftChange = useCallback(
     (next: GeocodeResult | null) => {
       setDraft(next);
-      if (next) flyTo(next.lat, next.lng, 0.5);
+      if (next) flyTo(next.lat, next.lng, CITY_ZOOM);
     },
     [flyTo]
   );
@@ -99,26 +90,20 @@ export function MapShell() {
     [draft]
   );
 
-  const mapProps = {
-    pins,
-    myUserId: session?.userId ?? null,
-    draft: draftMarker,
-    onSelectPin: (pin: TrollPin) => flyTo(pin.lat, pin.lng, 0.4),
-  };
-
   return (
     <div className="relative h-dvh w-screen overflow-hidden">
-      <div className="starfield" aria-hidden="true" />
-
       <div className="absolute inset-0">
-        {mode === "3d" ? (
-          <GlobeView key="3d" {...mapProps} handleRef={globeHandle} />
-        ) : (
-          <FlatMapView key="2d" {...mapProps} handleRef={flatHandle} />
-        )}
+        <MapView
+          pins={pins}
+          myUserId={session?.userId ?? null}
+          draft={draftMarker}
+          projection={mode === "3d" ? "globe" : "mercator"}
+          onSelectPin={(pin: TrollPin) => flyTo(pin.lat, pin.lng, CITY_ZOOM)}
+          handleRef={mapHandle}
+        />
       </div>
 
-      <GlobalSearch onPick={(result) => flyTo(result.lat, result.lng, 0.5)} />
+      <GlobalSearch onPick={(result) => flyTo(result.lat, result.lng, CITY_ZOOM)} />
 
       {/* Top-right actions */}
       <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2">

@@ -24,19 +24,28 @@ no `next/image` loader. Anything added must be renderable at build time.
 4. Accounts are the SHARED TrollRunner Supabase project. `src/lib/accounts/*`
    is copied from trollrunner-fitness — keep it in sync rather than forking
    the auth logic. Location tables use the `troll_locations` prefix.
-5. No API keys. Geocoding is OpenStreetMap Nominatim (debounced to ≤1 req/s
-   per their usage policy); the globe is local vector geometry, not map tiles.
+5. No API keys anywhere. Geocoding is OpenStreetMap Nominatim (debounced to
+   ≤1 req/s per their usage policy) and tiles come from OpenFreeMap. Don't
+   introduce a service that needs a token or a billing account.
 
-## Graphics
-The globe is deliberately vector, not a raster earth texture: crisp at every
-zoom, and no shimmering. Two rules that keep it from looking cheap:
-- The star field is CSS gradients, not `THREE.Points`. Single-pixel sprites
-  crawl and alias under antialiasing, which reads as TV static.
-- Land must stay clearly lighter than the ocean. Low contrast makes the
-  planet read as a flat grey disc — check any material change on a screenshot.
+## The map engine
+MapLibre GL JS with OpenStreetMap vector tiles from OpenFreeMap. This is the
+open equivalent of what degods.com/map runs (Mapbox GL + a Studio style), and
+it needs no account, token, or billing.
 
-`scripts/README.md` covers the geometry pipeline, including why ring winding
-matters. Read it before regenerating `public/geo/*`.
+- **Pin MapLibre to v5.** v6 ships its tile worker as a separate chunk that
+  Turbopack's static export doesn't resolve; the worker silently spawns
+  against `/` (the HTML document), no tiles are ever requested, and the map
+  renders as a black sphere with no error. v5 inlines the worker. If the map
+  goes blank after a dependency bump, check this first.
+- **2D/3D is one renderer.** `setProjection({type: 'globe' | 'mercator'})`.
+  Don't reintroduce a second map component for the flat view.
+- **Attribution is required** by OpenFreeMap/OpenStreetMap. Restyle the
+  control, never remove it.
+- **The stock dark style paints water lighter than land**, which reads as a
+  flat grey wash. `REPAINT` in `map-view.tsx` fixes that and lifts the label
+  and border contrast. Land must stay clearly lighter than the ocean — check
+  any change on a screenshot, at both world and city zoom.
 
 ## Setup
 `supabase/troll_locations.sql` must be run once in the Supabase SQL editor

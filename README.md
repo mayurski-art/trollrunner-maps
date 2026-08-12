@@ -3,8 +3,9 @@
 The troll world map — a 3D globe where trolls drop a pin for the city they're
 from. Lives at [maps.trollrunner.net](https://maps.trollrunner.net).
 
-- **3D globe** built from local vector country geometry (globe.gl / three.js),
-  with a 2D Mercator toggle that shares the same data and markers.
+- **3D globe** on real OpenStreetMap vector tiles (MapLibre GL + OpenFreeMap),
+  with a 2D toggle that's a projection switch on the same map. Street-level
+  detail all the way in, and no API key or billing account anywhere.
 - **Drop a pin** by searching for a city. Requires a TrollRunner account — the
   same one that works on every other TrollRunner site.
 - **Your pin is yours.** Hide it at any time and it disappears from the map and
@@ -32,13 +33,11 @@ In the repo's **Settings → Pages**, set the source to **GitHub Actions**.
 
 ## Layout
 
-| Path                     | What's there                                      |
-| ------------------------ | ------------------------------------------------- |
-| `src/components/`        | Globe, flat map, and the panel UI                 |
-| `src/lib/accounts/`      | Shared TrollRunner auth + cross-subdomain SSO     |
-| `src/lib/locations/`     | Pin queries and Nominatim geocoding               |
-| `src/lib/globe/`         | Geometry loading, Mercator math, marker DOM       |
-| `public/geo/`            | Generated country + label geometry                |
-| `scripts/`               | The pipeline that generates `public/geo/`         |
+| Path                  | What's there                                        |
+| --------------------- | --------------------------------------------------- |
+| `src/components/`     | The map and the panel UI                            |
+| `src/lib/accounts/`   | Shared TrollRunner auth + cross-subdomain SSO       |
+| `src/lib/locations/`  | Pin queries, Nominatim geocoding, pin marker DOM    |
+| `supabase/`           | The one migration this app needs                    |
 
 See `CLAUDE.md` for the rules that keep the map honest and good-looking.

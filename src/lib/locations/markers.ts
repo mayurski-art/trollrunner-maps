@@ -1,9 +1,9 @@
-import type { TrollPin } from "@/lib/locations/api";
-import type { GeoLabel } from "./geo";
+import type { TrollPin } from "./api";
 
 /**
- * Pin + label DOM builders shared by the 3D globe and the 2D map, so a marker
- * looks and behaves identically in both projections.
+ * Builds a troll pin as plain DOM, which is what MapLibre markers take. Being
+ * real HTML means the hover card is accessible and the pin stays vector-crisp
+ * in both the globe and flat projections.
  */
 
 const PIN_SVG = (fill: string, stroke: string) => `
@@ -66,9 +66,3 @@ export function buildPinElement(pin: TrollPin, opts: PinElementOptions): HTMLEle
   return el;
 }
 
-export function buildLabelElement(label: GeoLabel): HTMLElement {
-  const el = document.createElement("div");
-  el.className = `geo-label geo-label--${label.kind}`;
-  el.textContent = label.name;
-  return el;
-}

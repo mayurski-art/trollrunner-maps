@@ -32,31 +32,34 @@ body {
   overscroll-behavior: none;
 }
 
-/* ── Star field ───────────────────────────────────────────────────────────
-   Painted as CSS gradients rather than THREE.Points: single-pixel sprites
-   shimmer and crawl under antialiasing, which reads as TV static. Static
-   layers stay perfectly crisp and cost nothing per frame. */
-.starfield {
-  position: fixed;
-  inset: 0;
-  background-color: #05070c;
-  background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(255, 255, 255, 0.75), transparent 100%),
-    radial-gradient(1.2px 1.2px at 28% 62%, rgba(255, 255, 255, 0.55), transparent 100%),
-    radial-gradient(1.6px 1.6px at 43% 9%, rgba(226, 238, 255, 0.8), transparent 100%),
-    radial-gradient(1px 1px at 57% 41%, rgba(255, 255, 255, 0.5), transparent 100%),
-    radial-gradient(1.5px 1.5px at 68% 77%, rgba(255, 246, 226, 0.7), transparent 100%),
-    radial-gradient(1.1px 1.1px at 79% 24%, rgba(255, 255, 255, 0.55), transparent 100%),
-    radial-gradient(1.3px 1.3px at 88% 58%, rgba(214, 232, 255, 0.65), transparent 100%),
-    radial-gradient(1px 1px at 8% 84%, rgba(255, 255, 255, 0.45), transparent 100%),
-    radial-gradient(1.2px 1.2px at 35% 91%, rgba(255, 255, 255, 0.5), transparent 100%),
-    radial-gradient(1.4px 1.4px at 94% 12%, rgba(255, 255, 255, 0.6), transparent 100%),
-    radial-gradient(900px 620px at 22% 12%, rgba(48, 209, 88, 0.055), transparent 70%),
-    radial-gradient(1100px 780px at 82% 82%, rgba(64, 122, 255, 0.07), transparent 72%);
-  background-size:
-    520px 520px, 380px 380px, 640px 640px, 300px 300px, 700px 700px, 460px 460px,
-    580px 580px, 340px 340px, 620px 620px, 420px 420px, 100% 100%, 100% 100%;
-  pointer-events: none;
+/* ── Map chrome ───────────────────────────────────────────────────────────
+   MapLibre's own controls, dragged into this theme. Attribution is required
+   by OpenFreeMap/OpenStreetMap — restyle it, never hide it. */
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib a {
+  background: rgba(10, 14, 20, 0.75) !important;
+  color: rgba(200, 211, 228, 0.75) !important;
+  font-size: 10px;
+}
+
+.maplibregl-ctrl-group {
+  background: rgba(14, 18, 25, 0.86) !important;
+  border: 1px solid var(--color-line) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--color-line) !important;
+}
+
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) brightness(1.6);
+}
+
+/* Sits above the 2D/3D toggle, which owns the bottom-right corner. */
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+  margin-bottom: 62px;
 }
 
 /* ── Pins ─────────────────────────────────────────────────────────────────
@@ -162,39 +165,6 @@ body {
 }
 
 /* ── Map labels ───────────────────────────────────────────────────────── */
-.geo-label {
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: rgba(244, 248, 255, 0.9);
-  /* Labels sit over both lit land and dark ocean, so they carry their own
-     dark halo rather than relying on the background for contrast. */
-  text-shadow:
-    0 0 2px rgba(3, 6, 12, 1),
-    0 0 6px rgba(3, 6, 12, 0.95),
-    0 1px 2px rgba(3, 6, 12, 0.9);
-  pointer-events: none;
-  user-select: none;
-  white-space: nowrap;
-  transition: opacity 200ms ease;
-}
-
-.geo-label--country {
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.geo-label--city {
-  font-size: 10.5px;
-  color: rgba(226, 234, 248, 0.82);
-}
-
-.geo-label[hidden] {
-  display: none;
-}
-
 /* ── Chrome ───────────────────────────────────────────────────────────── */
 .panel {
   background: rgba(14, 18, 25, 0.86);
