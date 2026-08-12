@@ -3,8 +3,13 @@
 ## What this is
 The troll world map at maps.trollrunner.net: a 3D globe (plus a 2D Mercator
 toggle) where logged-in trolls drop a pin for the city they're from. Inspired
-by degods.com/map. Next.js App Router + TypeScript + Tailwind v4, deployed on
-Vercel like trollrunner-fitness.
+by degods.com/map. Next.js App Router + TypeScript + Tailwind v4.
+
+Nothing here needs a server — Next is only a bundler. `output: "export"`
+emits a plain static site into `out/`, which `.github/workflows/pages.yml`
+publishes to GitHub Pages on every push to main (CNAME lives in `public/` so
+it survives the export). Keep it that way: no API routes, no server actions,
+no `next/image` loader. Anything added must be renderable at build time.
 
 ## Hard rules
 1. **Login required to drop a pin.** Anyone can look at the map; only an
@@ -38,5 +43,7 @@ matters. Read it before regenerating `public/geo/*`.
 before pins work — until then the map loads and shows zero trolls.
 
 ## Workflow
-Vercel auto-deploys main. Merge each completed chunk to main and push
-immediately (standing rule); verify with `npm run build` first.
+GitHub Pages auto-deploys main via the Actions workflow. Merge each completed
+chunk to main and push immediately (standing rule); verify with
+`npm run build` first, and serve `out/` if you want to check the real
+artifact rather than the dev server.

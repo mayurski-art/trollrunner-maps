@@ -22,6 +22,14 @@ npm run dev
 One-time backend setup: run `supabase/troll_locations.sql` in the Supabase SQL
 editor. Until then the map renders with zero pins.
 
+## Deploying
+
+`npm run build` emits a fully static site into `out/` — there is no server
+side. Pushing to `main` builds it and publishes to GitHub Pages via
+`.github/workflows/pages.yml`; the custom domain comes from `public/CNAME`.
+
+In the repo's **Settings → Pages**, set the source to **GitHub Actions**.
+
 ## Layout
 
 | Path                     | What's there                                      |

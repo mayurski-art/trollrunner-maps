@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// Emitted as a file at build time so the static export can serve it.
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "TrollRunner Maps",
