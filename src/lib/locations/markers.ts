@@ -39,7 +39,9 @@ export function buildPinElement(pin: TrollPin, opts: PinElementOptions): HTMLEle
     avatar.alt = "";
     avatar.loading = "lazy";
   } else {
-    avatar.textContent = "🧌";
+    // Initial rather than a mascot glyph — it distinguishes one pin from the
+    // next, which a single shared symbol never did.
+    avatar.textContent = (pin.username?.trim()?.[0] ?? "?").toUpperCase();
   }
 
   const text = document.createElement("div");
