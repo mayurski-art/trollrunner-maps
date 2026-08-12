@@ -48,6 +48,18 @@ const countryLabels = countries.map((c, i) => ({
   zoom: i < 25 ? 2.5 : i < 70 ? 1.2 : 0.6,
 }));
 
+// Camera altitude runs from ~6 (whole planet) down to ~0.05 (closest zoom),
+// so the tiers below keep the globe readable when far out while still filling
+// in local towns once you actually zoom into somewhere.
+const CITY_TIERS = [
+  { upTo: 40, zoom: 1.1 },
+  { upTo: 120, zoom: 0.7 },
+  { upTo: 400, zoom: 0.45 },
+  { upTo: 1200, zoom: 0.28 },
+  { upTo: 3000, zoom: 0.17 },
+  { upTo: Infinity, zoom: 0.1 },
+];
+
 const placesGeo = JSON.parse(readFileSync('places.json', 'utf8'));
 const cityLabels = placesGeo.features
   .map((f) => ({
@@ -64,7 +76,7 @@ const cityLabels = placesGeo.features
     lng: c.lng,
     kind: 'city',
     capital: c.capital,
-    zoom: i < 40 ? 1.1 : i < 120 ? 0.7 : 0.45,
+    zoom: CITY_TIERS.find((t) => i < t.upTo).zoom,
   }));
 
 const out = { labels: [...countryLabels, ...cityLabels] };

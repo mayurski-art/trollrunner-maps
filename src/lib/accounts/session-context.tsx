@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { getClient } from "./client";
-import { adoptSsoCookie } from "./sso";
+import { adoptSsoCookie, listenForParentSession } from "./sso";
 import {
   getSession,
   login as accountsLogin,
@@ -45,6 +45,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    // Registered before the first await: when this page is an iframe in the
+    // troll desktop, the parent posts the session on frame load, and awaiting
+    // the cookie first would let that message arrive with nobody listening.
+    const stopBridge = listenForParentSession();
+
     (async () => {
       await adoptSsoCookie();
       if (!cancelled) await refresh();
@@ -56,6 +61,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     });
     return () => {
       cancelled = true;
+      stopBridge();
       sub.subscription.unsubscribe();
     };
   }, [refresh]);

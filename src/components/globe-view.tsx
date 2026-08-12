@@ -5,6 +5,7 @@ import * as THREE from "three";
 import type { GlobeInstance } from "globe.gl";
 import { loadCountries, loadLabels, type GeoLabel } from "@/lib/globe/geo";
 import { buildLabelElement, buildPinElement } from "@/lib/globe/markers";
+import { viewKey, visibleLabels } from "@/lib/globe/visible";
 import type { TrollPin } from "@/lib/locations/api";
 
 export type MapHandle = {
@@ -31,8 +32,10 @@ type Marker =
 export function GlobeView({ pins, myUserId, draft, onSelectPin, handleRef }: Props) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const globeRef = useRef<GlobeInstance | null>(null);
-  const labelNodesRef = useRef<Array<{ el: HTMLElement; zoom: number }>>([]);
-  const altitudeRef = useRef(HOME_ALTITUDE);
+  const labelsRef = useRef<GeoLabel[]>([]);
+  const povRef = useRef({ lat: 20, lng: -40, altitude: HOME_ALTITUDE });
+  const viewKeyRef = useRef("");
+  const applyMarkersRef = useRef<(() => void) | null>(null);
   // Latest values, read from inside long-lived globe callbacks. Declared
   // before the setup effect so they are current by the time it first runs.
   const pinsRef = useRef(pins);
@@ -98,10 +101,9 @@ export function GlobeView({ pins, myUserId, draft, onSelectPin, handleRef }: Pro
               onSelect: (pin) => onSelectRef.current?.(pin),
             });
           }
-          const el = buildLabelElement(marker.label);
-          labelNodesRef.current.push({ el, zoom: marker.label.zoom });
-          el.hidden = altitudeRef.current > marker.label.zoom;
-          return el;
+          // Only labels that belong at the current view are ever built, so
+          // there is nothing to hide here.
+          return buildLabelElement(marker.label);
         })
         // Markers on the far side of the planet must not bleed through.
         .htmlElementVisibilityModifier((el, isVisible) => {
@@ -146,13 +148,15 @@ export function GlobeView({ pins, myUserId, draft, onSelectPin, handleRef }: Pro
         controls.autoRotate = false;
       });
 
-      globe.pointOfView({ lat: 20, lng: -40, altitude: HOME_ALTITUDE });
+      globe.pointOfView(povRef.current);
 
+      // Fires on any camera move. Rebuilding the marker DOM every frame would
+      // be ruinous, so the view is quantised and markers only re-materialise
+      // when you have actually moved or zoomed enough to change what's shown.
       globe.onZoom((pov) => {
-        altitudeRef.current = pov.altitude;
-        for (const node of labelNodesRef.current) {
-          node.el.hidden = pov.altitude > node.zoom;
-        }
+        povRef.current = pov;
+        if (viewKey(pov) === viewKeyRef.current) return;
+        applyMarkers();
       });
 
       globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -166,22 +170,31 @@ export function GlobeView({ pins, myUserId, draft, onSelectPin, handleRef }: Pro
       detachResize = () => window.removeEventListener("resize", handleResize);
 
       globeRef.current = globe;
-      await applyMarkers();
+      labelsRef.current = await loadLabels();
+      if (disposed) return;
+      applyMarkers();
     })();
 
-    async function applyMarkers() {
+    function applyMarkers() {
       const globeInstance = globeRef.current;
-      if (!globeInstance) return;
-      const labels = await loadLabels();
-      if (disposed) return;
-      labelNodesRef.current = [];
-      globeInstance.htmlElementsData(buildMarkers(pinsRef.current, draftRef.current, myIdRef.current, labels));
+      if (!globeInstance || disposed) return;
+      const pov = povRef.current;
+      viewKeyRef.current = viewKey(pov);
+      globeInstance.htmlElementsData(
+        buildMarkers(
+          pinsRef.current,
+          draftRef.current,
+          myIdRef.current,
+          visibleLabels(labelsRef.current, pov)
+        )
+      );
     }
+    applyMarkersRef.current = applyMarkers;
 
     return () => {
       disposed = true;
       detachResize?.();
-      labelNodesRef.current = [];
+      applyMarkersRef.current = null;
       const instance = globeRef.current;
       globeRef.current = null;
       if (instance) {
@@ -192,18 +205,10 @@ export function GlobeView({ pins, myUserId, draft, onSelectPin, handleRef }: Pro
     };
   }, []);
 
-  // Re-apply markers whenever the pin set or the draft pin changes.
+  // Re-apply markers whenever the pin set or the draft pin changes. The refs
+  // above are updated first, so this just re-runs the same build.
   useEffect(() => {
-    let cancelled = false;
-    void loadLabels().then((labels) => {
-      const globe = globeRef.current;
-      if (cancelled || !globe) return;
-      labelNodesRef.current = [];
-      globe.htmlElementsData(buildMarkers(pins, draft, myUserId, labels));
-    });
-    return () => {
-      cancelled = true;
-    };
+    applyMarkersRef.current?.();
   }, [pins, draft, myUserId]);
 
   return <div ref={mountRef} className="h-full w-full" />;

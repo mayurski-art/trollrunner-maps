@@ -147,7 +147,7 @@ export function PinComposer({ myLocation, draft, onDraftChange, onSaved, onClose
           className="field"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g. Fontana, California"
+          placeholder="e.g. Los Angeles, California"
           autoComplete="off"
         />
       </label>

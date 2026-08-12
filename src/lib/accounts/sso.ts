@@ -57,3 +57,46 @@ export async function adoptSsoCookie() {
     // stale/expired — ignore
   }
 }
+
+/**
+ * The other half of SSO, for when this app is embedded in the main site's
+ * desktop shell. tdSyncFrameSession() in mayurski-art.github.io/index.html
+ * posts the parent's tokens down to every iframe it builds, and re-posts them
+ * whenever auth changes. Without this listener the map sits inside a
+ * logged-in desktop still asking you to log in.
+ *
+ * Mirrors initSsoBridge() in assets/js/troll-accounts.js — keep this
+ * allowlist in sync with SSO_ALLOWED_PARENT_ORIGINS there.
+ */
+const ALLOWED_PARENT_ORIGINS = [
+  "https://mayurski-art.github.io",
+  "https://www.trollrunner.net",
+  "https://trollrunner.net",
+];
+
+export function listenForParentSession(): () => void {
+  // Only an embedded page adopts a parent's session.
+  if (typeof window === "undefined" || window === window.top) return () => {};
+
+  const onMessage = (event: MessageEvent) => {
+    if (!ALLOWED_PARENT_ORIGINS.includes(event.origin)) return;
+    const msg = event.data as
+      | { type?: string; accessToken?: string; refreshToken?: string }
+      | null;
+    if (!msg || typeof msg !== "object") return;
+    const sb = getClient();
+    // Both branches fire onAuthStateChange, which the session provider is
+    // already subscribed to, so there is nothing to refresh by hand here.
+    if (msg.type === "trollrunner:sso-session" && msg.accessToken && msg.refreshToken) {
+      void sb.auth.setSession({
+        access_token: msg.accessToken,
+        refresh_token: msg.refreshToken,
+      });
+    } else if (msg.type === "trollrunner:sso-logout") {
+      void sb.auth.signOut();
+    }
+  };
+
+  window.addEventListener("message", onMessage);
+  return () => window.removeEventListener("message", onMessage);
+}

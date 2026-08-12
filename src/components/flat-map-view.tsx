@@ -20,6 +20,7 @@ type View = { scale: number; x: number; y: number };
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 16;
+const MAX_FLAT_LABELS = 320;
 
 export function FlatMapView({ pins, myUserId, draft, onSelectPin, handleRef }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -126,11 +127,20 @@ export function FlatMapView({ pins, myUserId, draft, onSelectPin, handleRef }: P
     if (!size.w || !size.h) return;
     const frag = document.createDocumentFragment();
 
+    // Same budget as the globe: the label set is ~7.5k, so only what is both
+    // on screen and allowed at this zoom gets built, most significant first.
     const altitude = 2.2 / view.scale;
-    for (const label of labels ?? []) {
-      if (altitude > label.zoom) continue;
+    const onScreen = (labels ?? [])
+      .filter((label) => {
+        if (altitude > label.zoom) return false;
+        const [x, y] = project(label.lat, label.lng, view);
+        return x >= 0 && y >= 0 && x <= size.w && y <= size.h;
+      })
+      .sort((a, b) => b.zoom - a.zoom)
+      .slice(0, MAX_FLAT_LABELS);
+
+    for (const label of onScreen) {
       const [x, y] = project(label.lat, label.lng, view);
-      if (x < 0 || y < 0 || x > size.w || y > size.h) continue;
       const el = document.createElement("div");
       el.className = `geo-label geo-label--${label.kind}`;
       el.textContent = label.name;

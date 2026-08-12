@@ -129,7 +129,7 @@ export function MapShell() {
             onClick={() => void logout()}
             title={`Logged in as ${session.username}`}
           >
-            🧌 {session.username}
+            {session.username}
           </button>
         ) : null}
         <button type="button" className="btn btn--primary pointer-events-auto" onClick={openPinPanel}>

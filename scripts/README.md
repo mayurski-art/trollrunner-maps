@@ -6,7 +6,7 @@ hand-edited. Regenerate them only if you want different detail:
 ```bash
 cd scripts
 curl -sL -o ne50.json https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
-curl -sL -o places.json https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_populated_places_simple.geojson
+curl -sL -o places.json https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_populated_places_simple.geojson
 
 node build-geo.mjs ne50.json countries.json 0.03   # tolerance in degrees
 node build-labels.mjs                              # reads countries.json + places.json
@@ -35,3 +35,15 @@ globe is not. If you touch `EXTERIOR_POSITIVE`, look at both views.
 
 0.03 is what ships (~250 KB gzipped) — coastlines stay crisp when zoomed in
 without a slow first paint.
+
+## Labels
+
+`labels.json` is ~7.5k entries (228 country centroids + the 10m populated
+places), tiered by the camera altitude each one is allowed to appear at. The
+density is the point: at the 110m places set, zooming into southern California
+showed two labels.
+
+That size is only viable because of the culling in `src/lib/globe/visible.ts`.
+Every HTML marker is a DOM node the globe repositions each frame, so only the
+few hundred labels that could actually be on screen are ever built. If you add
+labels, don't remove that — hand the globe the whole file and it will crawl.
