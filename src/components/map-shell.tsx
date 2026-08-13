@@ -111,8 +111,10 @@ export function MapShell() {
           <button
             type="button"
             className="btn btn--ghost pointer-events-auto !py-2 text-xs"
-            onClick={() => void logout()}
-            title={`Logged in as ${session.username}`}
+            onClick={() => {
+              if (window.confirm(`Log out of ${session.username}?`)) void logout();
+            }}
+            title={`Logged in as ${session.username} — click to log out`}
           >
             {session.username}
           </button>
