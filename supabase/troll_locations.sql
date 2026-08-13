@@ -10,9 +10,12 @@
 --     (so they don't lose their pin) but NOBODY else can read it — that is
 --     enforced by the RLS policy below, not by frontend filtering, so a
 --     hidden pin never leaves the database even to a crafted client.
---   * Coordinates are stored SNAPPED to ~1 km (3 decimals) and are meant to
+--   * Coordinates are stored SNAPPED to ~1.1 km (2 decimals) and are meant to
 --     be a city, not a doorstep. The upsert function rounds server-side, so a
---     client cannot record a more precise location than that.
+--     client cannot record a more precise location than that. The frontend
+--     search also restricts to settlement-level results only (featureType
+--     param in geocode.ts), so a street address can't resolve to a rooftop
+--     match in the first place — this rounding is the backstop.
 --   * Nothing here is required. A user with no row simply has no pin.
 -- ----------------------------------------------------------------------------
 
@@ -121,8 +124,8 @@ begin
     (user_id, lat, lng, label, country, country_code, updated_at)
   values
     (v_uid,
-     round(p_lat::numeric, 3),
-     round(p_lng::numeric, 3),
+     round(p_lat::numeric, 2),
+     round(p_lng::numeric, 2),
      v_label,
      nullif(btrim(coalesce(p_country, '')), ''),
      upper(nullif(btrim(coalesce(p_country_code, '')), '')),

@@ -46,6 +46,10 @@ export async function geocode(query: string, signal?: AbortSignal): Promise<Geoc
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("limit", "6");
+  // Restrict to populated places (city/town/village) so a street address or
+  // house number in the query can never resolve to a rooftop-level match —
+  // Nominatim ignores the street part and matches on the settlement name.
+  url.searchParams.set("featureType", "settlement");
 
   const response = await fetch(url, {
     signal,
