@@ -107,6 +107,19 @@ export function MapShell() {
 
       {/* Top-right actions */}
       <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2">
+        {/* Back to the Island — mobile only (desktop links out through the
+            classic dock instead). Lives in this row rather than its own
+            corner so it shares the search bar's clearance instead of
+            fighting it for space on a phone screen. troll-frontdoor.js
+            rewrites the href to a same-origin path once this site is
+            behind the front door, keeping the hop a native transition. */}
+        <a
+          href="https://trollrunner.net/"
+          className="panel pointer-events-auto grid h-9 w-9 place-items-center rounded-full text-base sm:hidden"
+          aria-label="Back to the Island"
+        >
+          ←
+        </a>
         {status === "authed" && session ? (
           <button
             type="button"
