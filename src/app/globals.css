@@ -19,17 +19,6 @@
   color-scheme: dark;
 }
 
-/* Native cross-document page transitions. Only fires between same-origin
-   documents, so this stays inert until this site is served through the
-   front door at trollrunner.net/maps (see docs/SAME-ORIGIN-TRANSITIONS.md
-   in the main repo — maps isn't routed yet, this just means it's ready the
-   moment it is). Mobile only, matching every other site on the network. */
-@media (max-width: 760px) {
-  @view-transition {
-    navigation: auto;
-  }
-}
-
 html,
 body {
   height: 100%;
