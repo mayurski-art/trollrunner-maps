@@ -16,9 +16,22 @@ type Props = {
   onDraftChange: (draft: GeocodeResult | null) => void;
   onSaved: () => void;
   onClose: () => void;
+  /** Whether a map click currently drops the pin instead of panning. */
+  picking: boolean;
+  onTogglePicking: () => void;
+  pickError: string | null;
 };
 
-export function PinComposer({ myLocation, draft, onDraftChange, onSaved, onClose }: Props) {
+export function PinComposer({
+  myLocation,
+  draft,
+  onDraftChange,
+  onSaved,
+  onClose,
+  picking,
+  onTogglePicking,
+  pickError,
+}: Props) {
   const { session } = useSession();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeocodeResult[]>([]);
@@ -151,6 +164,19 @@ export function PinComposer({ myLocation, draft, onDraftChange, onSaved, onClose
           autoComplete="off"
         />
       </label>
+
+      <button
+        type="button"
+        className={`btn w-full text-sm ${picking ? "btn--primary" : "btn--ghost"}`}
+        onClick={onTogglePicking}
+      >
+        {picking ? "Cancel — click the map to place your pin" : "Or pick a spot on the map"}
+      </button>
+      {pickError ? (
+        <p role="alert" className="text-sm text-[#ff8098]">
+          {pickError}
+        </p>
+      ) : null}
 
       {searching && q.length >= 2 ? <p className="text-xs text-muted">Searching…</p> : null}
 

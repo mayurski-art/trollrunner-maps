@@ -20,6 +20,8 @@ type Props = {
   draft: { lat: number; lng: number; label: string } | null;
   projection: Projection;
   onSelectPin?: (pin: TrollPin) => void;
+  /** When set, the next map click reports its coordinates here instead of selecting a pin. */
+  onPickLocation?: (lat: number, lng: number) => void;
   handleRef?: Ref<MapHandle>;
 };
 
@@ -78,6 +80,7 @@ export function MapView({
   draft,
   projection,
   onSelectPin,
+  onPickLocation,
   handleRef,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -87,6 +90,10 @@ export function MapView({
   const onSelectRef = useRef(onSelectPin);
   useEffect(() => {
     onSelectRef.current = onSelectPin;
+  });
+  const onPickRef = useRef(onPickLocation);
+  useEffect(() => {
+    onPickRef.current = onPickLocation;
   });
 
   useImperativeHandle(handleRef, () => ({
@@ -120,6 +127,12 @@ export function MapView({
       console.warn("[map]", event.error?.message ?? event);
     });
 
+    // Manual pin placement: only active while a picker callback is set, so a
+    // stray click can't relocate someone's pin outside that flow.
+    map.on("click", (event) => {
+      onPickRef.current?.(event.lngLat.lat, event.lngLat.lng);
+    });
+
     map.on("style.load", () => {
       readyRef.current = true;
       const repaint = (layer: string, prop: string, value: string) => {
@@ -141,6 +154,14 @@ export function MapView({
       map.remove();
     };
   }, []);
+
+  // Crosshair cursor is the only visible cue that a click will drop a pin
+  // instead of panning, since the click handler above is always attached.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.getCanvas().style.cursor = onPickLocation ? "crosshair" : "";
+  }, [onPickLocation]);
 
   // 2D / 3D is a projection switch on one renderer, not a second map.
   useEffect(() => {

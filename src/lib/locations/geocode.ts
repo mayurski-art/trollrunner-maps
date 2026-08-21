@@ -37,6 +37,42 @@ function placeLabel(place: NominatimPlace): string {
   );
 }
 
+/** Same host as `geocode`, just the reverse lookup — a clicked point in, a place out. */
+const REVERSE_ENDPOINT = "https://nominatim.openstreetmap.org/reverse";
+
+/** Turns a manually-picked map point into a labeled result, city-level like search. */
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal
+): Promise<GeocodeResult> {
+  const url = new URL(REVERSE_ENDPOINT);
+  url.searchParams.set("lat", String(lat));
+  url.searchParams.set("lon", String(lng));
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("addressdetails", "1");
+  // City-scale zoom so a click inside a neighborhood still resolves to the town.
+  url.searchParams.set("zoom", "10");
+
+  const response = await fetch(url, {
+    signal,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error("Couldn't look up that spot.");
+  const place = (await response.json()) as NominatimPlace;
+  if (!place || !place.lat) throw new Error("Nothing there — try a spot closer to a town.");
+
+  const address = place.address ?? {};
+  return {
+    label: placeLabel(place),
+    detail: place.display_name,
+    lat,
+    lng,
+    country: address.country ?? null,
+    countryCode: address.country_code ? address.country_code.toUpperCase() : null,
+  };
+}
+
 export async function geocode(query: string, signal?: AbortSignal): Promise<GeocodeResult[]> {
   const q = query.trim();
   if (q.length < 2) return [];

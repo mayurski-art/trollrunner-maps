@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/lib/accounts/session-context";
 import { getMyLocation, listPins, type MyLocation, type TrollPin } from "@/lib/locations/api";
-import { geocode, type GeocodeResult } from "@/lib/locations/geocode";
+import { geocode, reverseGeocode, type GeocodeResult } from "@/lib/locations/geocode";
 import type { MapHandle } from "./map-view";
 import { AuthPanel } from "./auth-panel";
 import { PinComposer } from "./pin-composer";
@@ -30,6 +30,8 @@ export function MapShell() {
   const [draft, setDraft] = useState<GeocodeResult | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [picking, setPicking] = useState(false);
+  const [pickError, setPickError] = useState<string | null>(null);
 
   const mapHandle = useRef<MapHandle | null>(null);
 
@@ -85,6 +87,19 @@ export function MapShell() {
     setPanel(session ? "pin" : "auth");
   }, [session]);
 
+  const handleMapPick = useCallback(
+    (lat: number, lng: number) => {
+      setPicking(false);
+      setPickError(null);
+      reverseGeocode(lat, lng)
+        .then((result) => handleDraftChange(result))
+        .catch((err: unknown) => {
+          setPickError(err instanceof Error ? err.message : "Couldn't look up that spot.");
+        });
+    },
+    [handleDraftChange]
+  );
+
   const draftMarker = useMemo(
     () => (draft ? { lat: draft.lat, lng: draft.lng, label: draft.label } : null),
     [draft]
@@ -99,11 +114,18 @@ export function MapShell() {
           draft={draftMarker}
           projection={mode === "3d" ? "globe" : "mercator"}
           onSelectPin={(pin: TrollPin) => flyTo(pin.lat, pin.lng, CITY_ZOOM)}
+          onPickLocation={picking ? handleMapPick : undefined}
           handleRef={mapHandle}
         />
       </div>
 
       <GlobalSearch onPick={(result) => flyTo(result.lat, result.lng, CITY_ZOOM)} />
+
+      {picking ? (
+        <div className="panel pointer-events-none absolute left-1/2 top-16 z-20 -translate-x-1/2 px-4 py-2 text-sm font-medium">
+          Click anywhere on the map to drop your pin there
+        </div>
+      ) : null}
 
       {/* Top-right actions */}
       <div className="pointer-events-none absolute right-4 top-4 z-20 flex items-center gap-2">
@@ -189,8 +211,15 @@ export function MapShell() {
               onSaved={refresh}
               onClose={() => {
                 setDraft(null);
+                setPicking(false);
                 setPanel("none");
               }}
+              picking={picking}
+              onTogglePicking={() => {
+                setPickError(null);
+                setPicking((p) => !p);
+              }}
+              pickError={pickError}
             />
           ) : (
             <TopCitiesPanel
