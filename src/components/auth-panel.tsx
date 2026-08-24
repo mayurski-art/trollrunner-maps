@@ -40,7 +40,7 @@ export function AuthPanel({ onDone }: { onDone?: () => void }) {
         </p>
       </div>
 
-      <div className="flex rounded-full border border-line bg-white/5 p-1">
+      <div className="flex rounded-xl border border-line bg-white/5 p-1">
         {(["login", "register"] as const).map((m) => (
           <button
             key={m}
@@ -49,7 +49,7 @@ export function AuthPanel({ onDone }: { onDone?: () => void }) {
               setMode(m);
               setError(null);
             }}
-            className={`flex-1 rounded-full py-1.5 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-lg py-1.5 text-sm font-medium transition-colors ${
               mode === m ? "bg-raised text-foreground" : "text-muted"
             }`}
           >

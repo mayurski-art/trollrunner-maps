@@ -207,7 +207,7 @@ export function PinComposer({
       <label className="flex items-start gap-3 rounded-xl border border-line bg-white/5 p-3">
         <input
           type="checkbox"
-          className="mt-0.5 h-4 w-4 accent-[#30d158]"
+          className="mt-0.5 h-4 w-4 accent-[#5856d6]"
           checked={visible}
           onChange={(e) => handleVisibility(e.target.checked)}
           disabled={busy}

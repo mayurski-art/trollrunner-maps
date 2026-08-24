@@ -180,7 +180,7 @@ export function MapShell() {
 
       {/* 2D / 3D toggle */}
       <div
-        className="panel absolute bottom-4 right-4 z-20 flex overflow-hidden !rounded-full p-1"
+        className="panel absolute bottom-4 right-4 z-20 flex overflow-hidden !rounded-xl p-1"
         role="group"
         aria-label="Map projection"
       >
@@ -190,7 +190,7 @@ export function MapShell() {
             type="button"
             onClick={() => setMode(m)}
             aria-pressed={mode === m}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors ${
               mode === m ? "bg-white text-black" : "text-muted hover:text-foreground"
             }`}
           >
@@ -261,7 +261,7 @@ function GlobalSearch({ onPick }: { onPick: (result: GeocodeResult) => void }) {
   return (
     <div className="absolute left-1/2 top-4 z-20 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2">
       <input
-        className="w-full rounded-full border border-line bg-surface/70 px-5 py-2.5 text-center text-sm text-foreground outline-none backdrop-blur-xl placeholder:text-muted focus:border-brand/50"
+        className="w-full rounded-xl border border-line bg-surface/70 px-5 py-2.5 text-center text-sm text-foreground outline-none backdrop-blur-xl placeholder:text-muted focus:border-brand/50"
         placeholder="Search Location"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

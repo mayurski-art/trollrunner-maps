@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void: #05070c;
-  --color-surface: #0e1219;
-  --color-raised: #161c26;
-  --color-line: #232b38;
-  --color-foreground: #e8ecf4;
-  --color-muted: #8b94a8;
-  --color-brand: #30d158;
+  --color-void: #000000;
+  --color-surface: #111114;
+  --color-raised: #1c1c1e;
+  --color-line: rgba(255, 255, 255, 0.14);
+  --color-foreground: #f5f5f7;
+  --color-muted: #9b9ba1;
+  --color-brand: #5856d6;
   --color-pin: #ff2d55;
   --color-mine: #ffb020;
 
@@ -43,9 +43,9 @@ body {
 }
 
 .maplibregl-ctrl-group {
-  background: rgba(14, 18, 25, 0.86) !important;
+  background: rgba(28, 28, 30, 0.86) !important;
   border: 1px solid var(--color-line) !important;
-  border-radius: 12px !important;
+  border-radius: 10px !important;
   overflow: hidden;
 }
 
@@ -122,8 +122,8 @@ body {
   align-items: center;
   gap: 8px;
   padding: 7px 10px;
-  border-radius: 12px;
-  background: rgba(14, 18, 25, 0.97);
+  border-radius: 10px;
+  background: rgba(28, 28, 30, 0.97);
   border: 1px solid var(--color-line);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
@@ -167,7 +167,7 @@ body {
 /* ── Map labels ───────────────────────────────────────────────────────── */
 /* ── Chrome ───────────────────────────────────────────────────────────── */
 .panel {
-  background: rgba(14, 18, 25, 0.86);
+  background: rgba(28, 28, 30, 0.86);
   backdrop-filter: blur(18px) saturate(150%);
   border: 1px solid var(--color-line);
   border-radius: 16px;
@@ -179,7 +179,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 10px 18px;
   font-size: 14px;
   font-weight: 600;
@@ -195,11 +195,12 @@ body {
 
 .btn--primary {
   background: var(--color-brand);
-  color: #04210d;
+  color: #fff;
 }
 
 .btn--primary:not(:disabled):hover {
-  filter: brightness(1.08);
+  background: #6a68e0;
+  filter: none;
 }
 
 .btn--ghost {
@@ -222,7 +223,7 @@ body {
   width: 100%;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--color-line);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 10px 14px;
   font-size: 14px;
   color: var(--color-foreground);
@@ -234,8 +235,8 @@ body {
 }
 
 .field:focus {
-  border-color: rgba(48, 209, 88, 0.55);
-  box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.14);
+  border-color: rgba(88, 86, 214, 0.55);
+  box-shadow: 0 0 0 3px rgba(88, 86, 214, 0.14);
 }
 
 *:focus-visible {
