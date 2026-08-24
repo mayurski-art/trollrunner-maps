@@ -171,6 +171,9 @@ export function MapView({
       style: STYLE_URL,
       center: [-40, 20],
       zoom: HOME_ZOOM,
+      // Don't let users zoom out past the default framing — the globe
+      // shrinking to a speck (or tiling weirdly at very low zoom) looks bad.
+      minZoom: HOME_ZOOM,
       attributionControl: { compact: true },
       // The pin is the point of the map; tilting mostly gets in the way.
       pitchWithRotate: false,
